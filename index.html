@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c242c">
+<meta name="description" content="Minecraft-Bedrock-Builds und Farmen als 3D-Modell mit Schichtansicht, Materialliste und Ertragsraten.">
+<title>Blockbuch Bedrock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<header class="top gut">
+  <div class="inner" id="barList">
+    <a class="logo" href="#"><canvas class="mark" id="mark" width="8" height="8" aria-hidden="true"></canvas><b>Blockbuch</b></a>
+    <span class="ed" style="margin-left:auto">Bedrock</span>
+  </div>
+  <div class="inner" id="barDetail" hidden>
+    <button class="back bevel" id="back" aria-label="Zurück zur Übersicht">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 2 4 8l6 6" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>Builds
+    </button>
+    <h2 class="dtitle" id="dname"></h2>
+  </div>
+</header>
+
+<main class="gut">
+  <div class="inner">
+    <section id="list">
+      <div class="hero">
+        <h1>Bauen, Schicht für Schicht.</h1>
+        <p>Farmen und Bauten für Bedrock als 3D-Modell, mit Materialliste und echten Ertragszahlen.</p>
+      </div>
+      <div class="tools">
+        <div class="srow">
+          <label class="search"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><rect x="2" y="2" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M11 11l5 5" stroke="currentColor" stroke-width="2.4"/></svg>
+            <input id="q" type="search" placeholder="Suchen: Eisen, Burg, Redstone" aria-label="Builds suchen"></label>
+          <div class="sort"><select id="sort" aria-label="Sortieren">
+            <option value="neu">Neu</option><option value="diff">Schwierigkeit</option><option value="size">Größe</option><option value="rate">Ertrag</option>
+          </select></div>
+        </div>
+        <div class="chips" id="chips" role="group" aria-label="Kategorie"></div>
+        <p class="count" id="count"></p>
+      </div>
+      <div class="grid" id="grid"></div>
+      <footer>Modelle sind vereinfacht und zeigen Aufbau und Materialbedarf. Neue Builds? Schreib Claude, welchen du drin haben willst.</footer>
+    </section>
+
+    <section id="detail" hidden>
+      <div class="dwrap">
+        <div class="stage">
+          <div class="viewer" id="viewer">
+            <div class="vtop">
+              <div class="dmeta" id="dmeta"></div>
+              <div class="vbtns">
+                <button class="ibtn bevel" id="spin" aria-pressed="true" aria-label="Automatisch drehen">
+                  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M14.5 9A5.5 5.5 0 1 1 9 3.5h3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 1 13 3.5 10.5 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="vhint">Tippen zeigt den Block · Ziehen dreht · Pinch zoomt</div>
+            <div class="pick" id="pick" hidden>
+              <img class="sw" id="pickimg" alt="">
+              <div class="pt"><strong id="pickname"></strong><span id="pickinfo"></span></div>
+              <button class="pclose" id="pickclose" aria-label="Schließen">✕</button>
+            </div>
+          </div>
+          <div class="lbar">
+            <div class="lrow scale" id="scaleRow" hidden>
+              <span class="lab" id="scaleLab">Etagen</span>
+              <span class="shint">mehr Ertrag</span>
+              <button class="step bevel" id="sminus" aria-label="Eine Etage weniger">−</button>
+              <span class="sval" id="sval"></span>
+              <button class="step bevel" id="splus" aria-label="Eine Etage mehr">+</button>
+            </div>
+            <div class="lrow"><span class="lab">Schicht</span><span class="lnum" id="lnum"></span></div>
+            <div class="lrow">
+              <button class="step bevel" id="prev" aria-label="Schicht runter">−</button>
+              <input type="range" id="layer" min="1" max="1" value="1" aria-label="Schicht wählen">
+              <button class="step bevel" id="next" aria-label="Schicht hoch">+</button>
+            </div>
+            <div class="lrow">
+              <button class="tgl bevel" id="only" aria-pressed="false">Nur diese Schicht</button>
+              <button class="tgl bevel" id="all">Ganzer Build</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" id="tab-build" aria-selected="true" data-p="p-build">Bauen</button>
+            <button class="tab" role="tab" id="tab-rate" aria-selected="false" data-p="ratepanel">Ertrag</button>
+            <button class="tab" role="tab" id="tab-info" aria-selected="false" data-p="p-info">Infos</button>
+          </div>
+          <div class="tpanel" id="p-build" role="tabpanel">
+            <div class="sec"><h3>Materialliste</h3><ul class="mats" id="mats"></ul><p class="stacks" id="stacks"></p></div>
+            <div class="sec" id="mobpanel"><h3>Mobs</h3><p id="mobs"></p></div>
+          </div>
+          <div class="tpanel" id="ratepanel" role="tabpanel" hidden>
+            <div class="sec"><h3 id="rateitem"></h3>
+              <div class="rgrid" id="rategrid">
+                <div><span class="rv" id="rmin"></span><span class="rl">pro Minute</span></div>
+                <div><span class="rv" id="rh"></span><span class="rl">pro Stunde</span></div>
+                <div><span class="rv" id="rday"></span><span class="rl">pro MC-Tag (20 min)</span></div>
+                <div><span class="rv" id="r10"></span><span class="rl">10 Std. AFK</span></div>
+              </div>
+            </div>
+            <p class="note" id="ratebasis"></p>
+            <p class="stacks">Farmen laufen nur, solange du in der Nähe bist (Simulationsdistanz).</p>
+          </div>
+          <div class="tpanel" id="p-info" role="tabpanel" hidden>
+            <div class="sec"><h3>Worum geht's</h3><p id="ddesc"></p></div>
+            <div class="sec"><h3>Tipps</h3><ul class="tips" id="tips"></ul></div>
+            <div class="sec"><h3>Echte Anleitung</h3><p class="note" id="dnote"></p>
+              <a class="tlink bevel" id="tlink" target="_blank" rel="noopener">Bedrock-Tutorials auf YouTube ↗</a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script src="js/data.js"></script>
+<script src="js/textures.js"></script>
+<script src="js/render.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
