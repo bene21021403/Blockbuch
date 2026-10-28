@@ -14,7 +14,7 @@ function makeThumbs(){
 // ---------- Liste ----------
 const $=id=>document.getElementById(id);
 function renderChips(){$("chips").innerHTML="";CATS.forEach(c=>{const bt=document.createElement("button");bt.className="chip";bt.textContent=c;bt.setAttribute("aria-pressed",c===cat);bt.onclick=()=>{cat=c;renderChips();renderGrid()};$("chips").appendChild(bt)})}
-const NEW=["bambus","kaktus","goldfarm","handelshalle","burg","windmuehle","leuchtfeuer","netherportal"];
+const NEW=["huehnchengrill","silberfisch","wolle-16","dorfkarotten","mobturm","wolle-reihe","wolle-mini","karotten","mobfarm","bambus","kaktus","goldfarm","handelshalle","burg","windmuehle","leuchtfeuer","netherportal"];
 const DIFF={Leicht:0,Mittel:1,Schwer:2};
 let sortBy="neu";
 const rateVal=r=>!r||r.unknown||r.manual?-1:r.max!=null?r.max:Array.isArray(r.h)?r.h[1]:r.h;

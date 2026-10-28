@@ -54,7 +54,20 @@ const T = {
   lectern:   {n:"Lesepult"},
   barrel:    {n:"Fass"},
   smoker:    {n:"Räucherofen"},
+  dispenser: {n:"Werfer"},
+  hoppercart:{n:"Trichterlore + Schiene", s:"cart"},
+  flow:      {n:"Wasser (fließt)", alpha:.5, part:true, s:"flow"},
+  carrot:    {n:"Karotten", s:"plant", cut:true},
+  lever:     {n:"Hebel", s:"torch"},
+  button:    {n:"Knopf", s:"button"},
+  armadillo: {n:"Gürteltier", s:"small", mob:true},
 };
+// Schafe in allen 16 Wollfarben
+const SHEEP=[["weiss","Weiß","#e9ecec"],["orange","Orange","#f07613"],["magenta","Magenta","#bd44b3"],["hellblau","Hellblau","#3aafd9"],
+  ["gelb","Gelb","#f8c627"],["hellgruen","Hellgrün","#70b919"],["rosa","Rosa","#ed8dac"],["grau","Grau","#3e4447"],
+  ["hellgrau","Hellgrau","#8e8e86"],["tuerkis","Türkis","#158991"],["violett","Violett","#792aac"],["blau","Blau","#35399d"],
+  ["braun","Braun","#724728"],["gruen","Grün","#546d1b"],["rot","Rot","#a12722"],["schwarz","Schwarz","#141519"]];
+SHEEP.forEach(([k,n])=>T["sheep_"+k]={n:"Schaf ("+n+")", s:"sheep", mob:true});
 
 // ---------- Builder ----------
 // r: 0 = Vorderseite nach +z, 1 = +x, 2 = -z, 3 = -x, 4 = nach oben, 5 = nach unten
@@ -69,6 +82,36 @@ function B(){
   };return a;
 }
 const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+
+// ---------- Farm-Bausteine ----------
+// Ein Modul: Schaf auf Gras, Beobachter sieht das Gras, Werfer mit Scheren schert, Trichterlore unter dem Gras sammelt.
+// m = gespiegelt (zweite Reihe, Blick nach -z)
+function woolMod(b,x,col,m){const Z=z=>m?10-z:z,r=m?2:0;
+  b.set(x,0,Z(2),"hopper"); b.set(x,0,Z(3),"chest",r); b.set(x,0,Z(0),"brick").set(x,0,Z(1),"brick");
+  b.set(x,1,Z(2),"hoppercart"); b.set(x,1,Z(0),"brick").set(x,1,Z(1),"brick").set(x,1,Z(3),"glass");
+  b.set(x,2,Z(2),"grass"); b.set(x,2,Z(3),"grass"); b.set(x,2,Z(1),"observer",r); b.set(x,2,Z(0),"brick");
+  b.set(x,3,Z(2),"sheep_"+col,r); b.set(x,3,Z(1),"dispenser",r); b.set(x,3,Z(0),"redstone");
+  b.set(x,3,Z(3),"glass").set(x,4,Z(3),"glass").set(x,4,Z(1),"glass");
+  b.set(x,5,Z(2),"glass").set(x,5,Z(3),"glass");}
+function woolSep(b,x,m){const Z=z=>m?10-z:z;
+  [0,1,2,3].forEach(z=>{b.set(x,0,Z(z),"brick");b.set(x,1,Z(z),"brick")});
+  b.set(x,2,Z(0),"brick").set(x,2,Z(1),"brick").set(x,3,Z(1),"brick"); b.set(x,2,Z(2),"grass").set(x,2,Z(3),"grass");
+  [2,3].forEach(z=>{b.set(x,3,Z(z),"glass");b.set(x,4,Z(z),"glass");b.set(x,5,Z(z),"glass")}); b.set(x,4,Z(1),"glass");}
+const WOOL_TIPS=["Nur Werfer funktionieren, ein Spender schert nicht.","Bis zu 9 Scheren pro Werfer, mit Haltbarkeit halten sie viel länger.","Das Gras neben dem Schaf muss Licht bekommen, sonst wächst es nicht nach. Deshalb ist alles aus Glas.","Schaf mit Weizen in die Zelle locken und danach mit Farbstoff färben."];
+const WOOL_RATE="Pro Schaf rechnen Wollfarm-Guides mit etwa 60 Wolle pro Stunde. Das ist ein Wert von Java-Servern, Bedrock kann abweichen. Bei {n} Schafen wären das rund {h} pro Stunde, am besten selbst nachmessen.";
+
+// Mob-Turm: Plattformen mit Wasserkanälen zum Mittelloch, Fallschacht, Killraum.
+function mobTower(b,n,R){const c=R,top=22,F0=top-3*(n-1);
+  b.box(c-1,0,c-1,c+1,0,c+1,"brick"); b.set(c,0,c,"hopper"); b.set(c,-1,c,"chest",2); b.set(c+1,-1,c,"chest",2);
+  b.walls(c-1,1,c-1,c+1,2,c+1,"brick"); b.set(c,1,c-1,"glass"); b.set(c,2,c-1,"glass"); b.set(c,0,c-2,"slab"); b.set(c,1,c-2,"torch");
+  b.walls(c-1,3,c-1,c+1,F0-1,c+1,"brick");
+  for(let k=0;k<n;k++){const f=F0+3*k;
+    b.box(0,f,0,2*c,f,2*c,"brick"); b.del(c,f,c);
+    b.walls(0,f+1,0,2*c,f+2,2*c,"brick");
+    [[c,1,0,1],[c,2*c-1,0,-1],[1,c,1,0],[2*c-1,c,-1,0]].forEach(([x,z,dx,dz])=>{
+      b.set(x,f+1,z,"water"); let px=x+dx,pz=z+dz; while(px!==c||pz!==c){b.set(px,f+1,pz,"flow"); px+=dx; pz+=dz;}});}
+  b.box(0,F0+3*n,0,2*c,F0+3*n,2*c,"brick");}
+
 
 const BUILDS=[
 { id:"eisenfarm", name:"Eisenfarm", cat:"Farmen", diff:"Mittel",
@@ -200,20 +243,130 @@ const BUILDS=[
     for(let x=0;x<=5;x++){b.set(x,1,0,"brick");b.set(x,1,2,"brick");}
     b.set(0,1,1,"water"); b.set(5,1,1,"lava"); b.set(4,1,1,"stone");
     return b.list();}},
-{ id:"mobfarm", name:"Mob- & XP-Farm", cat:"Farmen", diff:"Schwer",
-  desc:"Auf der dunklen Plattform spawnen Mobs, die Wasserkanäle treiben sie ins Mittelloch. Sie fallen tief und kommen unten mit wenigen Leben im Killraum an. Ein Schlag gibt Erfahrung, die Drops landen in der Truhe.",
-  tips:["Bau sie hoch über einem Ozean oder weit in der Luft, damit nur hier Mobs spawnen.","Die Plattform muss komplett dunkel sein, also keine Fackeln drin.","Bleib beim AFK in passender Entfernung zur Plattform, damit dort Mobs spawnen."],
-  note:"Im Modell ist der Fallschacht verkürzt. Die richtige Fallhöhe für deine Version steht im Tutorial.",
-  rate:{item:"Mob-Drops & XP", unknown:true, basis:"Hängt stark von Höhe, Umgebung und Spawn-Flächen in der Nähe ab. Für Bedrock gibt es keine verlässliche Pauschalzahl."},
-  q:"minecraft bedrock mob xp farm",
-  make(){const b=B();
-    b.box(4,0,4,6,0,6,"brick"); b.set(5,0,5,"hopper"); b.set(5,-1,5,"chest",2); b.set(6,-1,5,"chest",2);
-    b.walls(4,1,4,6,2,6,"brick"); b.set(5,1,4,"glass"); b.set(5,2,4,"glass"); b.set(5,0,3,"slab"); b.set(5,1,3,"torch");
-    b.walls(4,3,4,6,13,6,"brick");
-    b.box(0,14,0,10,14,10,"brick"); b.del(5,14,5);
-    b.walls(0,15,0,10,16,10,"brick"); b.box(0,17,0,10,17,10,"brick");
-    for(let i=1;i<=9;i++){ if(i!==5){b.set(i,15,5,"water");b.set(5,15,i,"water");}}
+// ===== Wollfarmen =====
+{ id:"wolle-mini", name:"Wollfarm Mini", cat:"Farmen", diff:"Leicht",
+  desc:"Ein Schaf, ein Werfer, ein Beobachter. Frisst das Schaf das Gras unter sich, wird der Block zu Erde. Das merkt der Beobachter und lässt den Werfer mit Scheren auslösen. Die Wolle fällt aufs Gras, die Trichterlore darunter sammelt sie durch den Block hindurch ein.",
+  tips:WOOL_TIPS,
+  note:"Funktioniert in Bedrock, die Trichterlore sammelt dort Items durch einen vollen Block. Die Ausrichtung von Beobachter und Werfer im Modell beachten: Beobachter schaut aufs Gras, Werfer auf das Schaf.",
+  rate:{item:"Wolle", perPlant:60, plant:"sheep_*", div:1, basis:WOOL_RATE},
+  q:"minecraft bedrock automatic wool farm observer dispenser",
+  make(){const b=B(); b.box(-1,-1,0,1,-1,3,"brick"); woolSep(b,-1); woolMod(b,0,"weiss"); woolSep(b,1); return b.list();}},
+
+{ id:"wolle-reihe", name:"Wollfarm Reihe", cat:"Farmen", diff:"Mittel",
+  desc:"Mehrere Wollmodule nebeneinander, jedes Schaf in einer anderen Farbe und mit eigener Truhe. So hast du die Farben schon sortiert. Mit dem Regler unten kannst du die Reihe verlängern.",
+  tips:WOOL_TIPS.concat(["Für jede Farbe ein Modul, dann landet jede Farbe in ihrer eigenen Truhe."]),
+  note:"Funktioniert in Bedrock. Die Redstone-Staub-Punkte der Module dürfen sich nicht berühren, deshalb liegt zwischen den Modulen immer eine Trennspalte.",
+  scale:{label:"Schafe", min:2, max:8, def:4},
+  rate:{item:"Wolle", perPlant:60, plant:"sheep_*", div:1, basis:WOOL_RATE},
+  q:"minecraft bedrock wool farm all colors",
+  make(n=4){const b=B(); b.box(-1,-1,0,2*n-1,-1,3,"brick");
+    for(let i=0;i<n;i++){woolSep(b,2*i-1); woolMod(b,2*i,SHEEP[i][0]);} woolSep(b,2*n-1); return b.list();}},
+
+{ id:"wolle-16", name:"Wollfarm alle 16 Farben", cat:"Farmen", diff:"Schwer",
+  desc:"Die große Version: 16 Module in zwei Reihen, jede Wollfarbe einmal. In der Mitte ist ein Gang, von dem aus du alle 16 Truhen erreichst. Damit hast du nie wieder zu wenig Wolle für Betten, Banner oder Deko.",
+  tips:WOOL_TIPS.concat(["Färb die Schafe erst in der Zelle, dann verwechselst du nichts.","Für Farbstoffe wie Türkis oder Violett brauchst du Mischungen, also vorher genug Blumen sammeln."]),
+  note:"Funktioniert in Bedrock. Die zweite Reihe ist gespiegelt aufgebaut, die Rückseiten mit dem Redstone zeigen nach außen.",
+  rate:{item:"Wolle", perPlant:60, plant:"sheep_*", div:1, basis:WOOL_RATE},
+  q:"minecraft bedrock wool farm 16 colors",
+  make(){const b=B(); b.box(-1,-1,0,15,-1,10,"brick");
+    for(let i=0;i<8;i++){woolSep(b,2*i-1); woolMod(b,2*i,SHEEP[i][0]); woolSep(b,2*i-1,true); woolMod(b,2*i,SHEEP[8+i][0],true);}
+    woolSep(b,15); woolSep(b,15,true);
+    [1,7,13].forEach(x=>b.set(x,2,5,"lantern"));
     return b.list();}},
+
+// ===== Essensfarmen =====
+{ id:"karotten", name:"Karottenfeld mit Wasserernte", cat:"Farmen", diff:"Leicht",
+  desc:"Halbautomatisch und sehr günstig: Legst du den Hebel um, setzen die Werfer am Feldrand Wasser. Das Wasser fließt übers Feld, erntet alle reifen Karotten und spült sie in die Trichter am anderen Ende. Hebel zurück, die Werfer holen das Wasser wieder ein. Danach nur neu pflanzen.",
+  tips:["In die Werfer kommen Wassereimer, beim zweiten Auslösen nehmen sie das Wasser wieder auf.","Erst ernten, wenn fast alles reif ist, sonst spült das Wasser auch unreife Karotten weg.","Karotten sind ideal für den Anfang, später machst du daraus goldene Karotten.","Die Wasserrinne in der Mitte hält den Ackerboden feucht."],
+  note:"Das Wasser fließt in Bedrock 7 Blöcke weit, deshalb ist das Feld genau 7 Blöcke lang.",
+  rate:{item:"Karotten", unknown:true, basis:"Halbautomatisch: Pro Ernte bekommst du von 56 Pflanzen je 2 bis 5 Karotten, also grob 150. Wie oft du erntest, hängt vom Wachstum ab, in Bedrock wachsen Pflanzen eher langsam."},
+  q:"minecraft bedrock water harvest crop farm dispenser",
+  make(){const b=B();
+    b.box(-1,-1,-1,10,-1,9,"brick");
+    for(let x=0;x<=8;x++){
+      b.set(x,1,0,"dispenser",0); b.set(x,0,0,"brick"); b.set(x,2,0,"redstone");
+      for(let z=1;z<=7;z++){ if(x===4){b.set(x,0,z,"water");} else {b.set(x,0,z,"farmland");b.set(x,1,z,"carrot");} }
+      b.set(x,0,8,"hopper"); b.set(x,0,9,"brick").set(x,1,9,"brick"); }
+    for(let z=0;z<=9;z++){b.set(-1,0,z,"brick");b.set(-1,1,z,"brick");b.set(9,0,z,"brick");b.set(9,1,z,"brick");}
+    b.set(9,0,8,"hopper"); b.set(10,0,8,"chest",1);
+    b.set(-1,2,0,"lever"); b.set(9,2,0,"brick");
+    return b.list();}},
+
+{ id:"huehnchengrill", name:"Hühnchen-Grill", cat:"Farmen", diff:"Mittel",
+  desc:"Die beste Essensfarm für den Anfang: fertig gebratenes Hähnchen, ganz ohne Ofen. Die Hühner oben legen Eier in die Trichter, die bringen sie zum Werfer. Der schießt die Eier in die Grillzelle, dort schlüpfen Küken. Werden sie groß, stoßen sie mit dem Kopf an die Lava und lassen gebratenes Hähnchen und Federn fallen.",
+  tips:["Gebratenes Hähnchen füllt 6 Hungerpunkte, das ist für den Anfang richtig gut.","In Bedrock gibt es kein Gedränge-Limit, du kannst also viele Hühner auf die Trichter setzen. Mehr Hühner, mehr Ertrag.","Die Küken stehen auf einer Stufe: Klein passen sie unter die Lava, ausgewachsen nicht mehr.","Die zwei Beobachter, die sich anschauen, sind der Taktgeber für den Werfer."],
+  note:"Die Höhe ist entscheidend: Boden der Grillzelle ist eine untere Stufe, die Lava liegt direkt einen Block darüber. Halte dich beim Bauen genau an ein Bedrock-Tutorial.",
+  rate:{item:"Gebratenes Hähnchen", h:[3,6], basis:"Ein Huhn legt etwa alle 5 bis 10 Minuten ein Ei, aus rund jedem achten Ei schlüpft ein Küken. Mit den 3 Hühnern im Modell sind das grob 3 bis 6 Hähnchen pro Stunde. Jedes zusätzliche Huhn bringt etwa 1 bis 2 pro Stunde mehr."},
+  q:"minecraft bedrock chicken cooker farm",
+  make(){const b=B();
+    b.box(-1,0,-1,5,2,3,"brick");
+    for(let x=0;x<=2;x++){b.set(x,3,0,"hopper"); b.set(x,4,0,"chicken",x%4);}
+    b.set(3,3,0,"dispenser",1); b.set(3,3,1,"observer",0); b.set(3,3,2,"observer",2);
+    b.walls(-1,4,-1,3,5,1,"glass"); b.box(-1,6,-1,3,6,1,"glass"); b.set(3,4,0,"glass").set(3,5,0,"glass");
+    b.set(4,3,0,"slab"); b.set(4,2,0,"hoppercart"); b.set(4,1,0,"hopper"); b.del(5,1,0); b.set(5,1,0,"hopper"); b.set(5,0,0,"brick");
+    b.set(6,1,0,"chest",1); b.set(6,0,0,"brick");
+    b.set(4,4,0,"lava"); b.set(4,3,-1,"glass").set(4,3,1,"glass").set(5,3,0,"glass");
+    b.set(4,4,-1,"glass").set(4,4,1,"glass").set(5,4,0,"glass").set(4,5,0,"glass");
+    return b.list();}},
+
+{ id:"dorfkarotten", name:"Dorfbewohner-Karottenfarm", cat:"Farmen", diff:"Schwer",
+  desc:"Vollautomatisch: Ein Bauer erntet und pflanzt das ganze Feld selbst. Sieht er einen zweiten Dorfbewohner, wirft er ihm überschüssige Karotten zu. Die Glaswand fängt die Würfe ab, die Karotten fallen aufs Feld und die Trichterloren darunter sammeln sie ein, bevor der Bauer sie wieder aufhebt.",
+  tips:["Der Bauer braucht einen Komposter als Arbeitsplatz, der steht am Feldrand.","Gib dem Bauern am Anfang ein paar Karotten, damit er pflanzen kann.","Kartoffeln funktionieren genauso, Weizen ist wegen der Samen schwieriger.","Dorfbewohner bekommst du mit einer Lore oder einem Boot zur Farm."],
+  note:"Bauern-Farmen laufen auch in Bedrock. Ein Bedrock-Fehlerbericht bestätigt, dass Trichterloren unter dem Ackerboden die Karotten einsammeln. Die genaue Anordnung zeigt das Tutorial.",
+  rate:{item:"Karotten", h:[200,500], src:true, basis:"Ein Guide für Server nennt 200 bis 500 Pflanzen pro Stunde und Bauer. Das ist ein Java-Wert, in Bedrock wachsen Pflanzen langsamer, rechne eher mit dem unteren Ende."},
+  q:"minecraft bedrock villager carrot farm automatic",
+  make(){const b=B();
+    b.box(-4,-1,-1,9,-1,9,"brick"); b.box(-1,0,-1,9,0,9,"brick");
+    for(let x=0;x<=8;x++)for(let z=0;z<=8;z++){
+      if(x===4&&z===4){b.set(x,1,z,"water");b.set(x,2,z,"slab");continue;}
+      b.set(x,1,z,"farmland"); b.set(x,2,z,"carrot");}
+    [3,4,5].forEach(z=>{b.set(0,0,z,"hoppercart"); b.set(0,-1,z,"hopper");});
+    b.set(-1,-1,4,"hopper"); b.set(-2,-1,4,"chest",3);
+    for(let i=-1;i<=9;i++){b.set(i,1,-1,"brick");b.set(i,2,-1,"fence");b.set(i,1,9,"brick");b.set(i,2,9,"fence");b.set(-1,1,i,"brick");b.set(-1,2,i,"fence");b.set(9,1,i,"brick");b.set(9,2,i,"fence");}
+    [3,4,5].forEach(z=>{b.set(-1,2,z,"glass");b.set(-1,3,z,"glass")});
+    b.set(9,2,4,"composter",3);
+    b.del(6,2,6); b.set(6,2,6,"villager",1).set(6,3,6,"villagerhead",1);
+    b.box(-4,0,3,-2,0,5,"brick"); b.set(-3,1,4,"brick"); b.set(-3,2,4,"villager",1).set(-3,3,4,"villagerhead",1);
+    [[-4,4],[-3,3],[-3,5],[-2,3],[-2,5],[-2,4]].forEach(([x,z])=>{b.set(x,1,z,"brick");b.set(x,2,z,"glass");b.set(x,3,z,"glass")});
+    b.del(-2,2,4).del(-2,3,4).del(-2,1,4); b.set(-2,1,4,"brick"); b.set(-3,4,4,"glass");
+    [[-1,-1],[9,-1],[-1,9],[9,9]].forEach(([x,z])=>b.set(x,3,z,"lantern"));
+    return b.list();}},
+
+// ===== Levelfarmen =====
+{ id:"mobfarm", name:"Mob-Turm klein", cat:"Farmen", diff:"Leicht",
+  desc:"Der Klassiker ohne Spawner und ohne Redstone. Auf der dunklen Plattform spawnen Zombies, Skelette und Spinnen, die Wasserkanäle treiben sie ins Mittelloch. Nach 22 Blöcken Fall kommen sie mit fast keinem Leben unten an. Ein Schlag reicht, du bekommst die Erfahrung und die Drops landen in der Truhe.",
+  tips:["Bau ihn hoch in der Luft oder über einem Ozean, damit die Mobs nur hier spawnen können.","Keine Fackeln auf der Plattform, sie muss komplett dunkel sein.","Stell dich zum Farmen in den Killraum. Die Plattform ist dann über 24 Blöcke entfernt, so weit weg müssen Mobs in Bedrock mindestens spawnen.","Die Stufe vor dem Fenster sorgt dafür, dass du die Mobs triffst, sie dich aber nicht."],
+  note:"Fallhöhe und Abstände sind im Modell echt. Wie die Wasserkanäle auf deiner Plattform genau verlaufen, zeigt ein Bedrock-Tutorial.",
+  rate:{item:"Mob-Drops & XP", unknown:true, basis:"Hängt stark von Höhe, Umgebung und Spawnflächen in der Nähe ab. Für Bedrock gibt es keine verlässliche Pauschalzahl."},
+  q:"minecraft bedrock mob tower xp farm no spawner",
+  make(){const b=B(); mobTower(b,1,5); return b.list();}},
+
+{ id:"silberfisch", name:"Gürteltier-Silberfisch-Farm", cat:"Farmen", diff:"Mittel",
+  desc:"Die neue XP-Farm: Gürteltiere bekommen per Werfer einen Wurftrank der Befallenheit. Jedes Mal, wenn sie Schaden nehmen, können Silberfische aus ihnen herauskommen. Der Kaktus in der Mitte piekst die Gürteltiere ständig. Der Zombie hinter Glas macht ihnen Angst, deshalb bleiben sie eingerollt und halten viel aus. Die Silberfische kommen zu dir ans Fenster und du erledigst sie für je 5 XP.",
+  tips:["Trank der Befallenheit: Seltsamer Trank plus ein Steinblock (kein Bruchstein), mit Schwarzpulver wird ein Wurftrank daraus.","Der Zombie braucht ein Namensschild und ein Dach, sonst verschwindet er oder verbrennt.","Gürteltiere findest du in Savanne und Tafelbergen, mit Spinnenaugen vermehrst du sie.","Nachschub alle paar Minuten über den Knopf, die Wirkung hält nicht ewig. In Bedrock ist sie teils kürzer als angegeben."],
+  note:"Funktioniert ab Version 1.21 auch in Bedrock. Die Mechanik steht im Minecraft Wiki, Details zum Aufbau zeigt ein Bedrock-Tutorial.",
+  rate:{item:"Silberfische (je 5 XP)", unknown:true, basis:"Jeder Treffer auf ein befallenes Gürteltier hat eine Chance von 10 %, 1 bis 2 Silberfische freizusetzen. Wie viel das pro Stunde wird, hängt vom Kaktus-Schaden und der Trankdauer ab, also selbst ausprobieren."},
+  q:"minecraft bedrock armadillo silverfish xp farm infestation",
+  make(){const b=B();
+    b.box(0,-1,0,6,-1,8,"brick"); b.box(1,0,1,5,0,5,"brick"); b.set(3,0,3,"sand"); b.set(3,1,3,"cactus");
+    [[3,2],[3,4],[2,3],[4,3]].forEach(([x,z],i)=>b.set(x,1,z,"armadillo",i));
+    b.walls(1,1,1,5,2,5,"glass"); b.box(1,3,1,5,3,5,"glass");
+    b.set(3,3,3,"dispenser",5); b.set(3,4,3,"button");
+    b.del(3,1,1).del(3,2,1); b.set(3,1,1,"slab"); b.set(3,0,0,"brick");
+    b.box(2,0,6,4,0,8,"brick"); b.set(3,1,7,"zombie").set(3,2,7,"zombiehead");
+    b.set(2,1,7,"glass").set(2,2,7,"glass").set(4,1,7,"glass").set(4,2,7,"glass").set(3,1,8,"glass").set(3,2,8,"glass");
+    b.box(2,3,6,4,3,8,"brick");
+    return b.list();}},
+
+{ id:"mobturm", name:"Mob-Turm groß", cat:"Farmen", diff:"Schwer",
+  desc:"Der große Bruder: mehrere Spawn-Etagen übereinander, alle mit Wasserkanälen zum selben Schacht. Jede Etage erhöht den Ertrag. Die oberste Etage fällt 22 Blöcke, die unteren etwas weniger, dort brauchen die Mobs eventuell einen zweiten Schlag.",
+  tips:["Jede Etage ist genau 2 Blöcke hoch, so passen Endermen nicht rein.","Bau ihn hoch über einem Ozean, sonst spawnen die Mobs lieber in Höhlen unter dir.","Mit einem Schärfe-Schwert reicht meist ein Schlag pro Mob.","Fang mit einer Etage an und bau weitere drauf, wenn alles läuft."],
+  note:"Die Fallhöhe ist auf die oberste Etage ausgelegt. Wasserverlauf und Kanäle für deine Version am besten nach einem Bedrock-Tutorial bauen.",
+  scale:{label:"Etagen", min:1, max:4, def:3},
+  rate:{item:"Mob-Drops & XP", unknown:true, basis:"Mehr Etagen bringen ungefähr entsprechend mehr Mobs. Eine verlässliche Bedrock-Zahl gibt es nicht, weil Höhe und Umgebung viel ausmachen."},
+  q:"minecraft bedrock multi floor mob tower",
+  make(n=3){const b=B(); mobTower(b,n,7); return b.list();}},
+
 { id:"handelshalle", name:"Handelshalle", cat:"Dorf", diff:"Mittel",
   desc:"Zwei Reihen mit je sieben Zellen. Jeder Dorfbewohner steht fest in seiner Zelle vor seinem Arbeitsplatz, du läufst durch den Mittelgang und handelst. Ideal für Smaragde, Bücher und Werkzeuge.",
   tips:["Bring die Dorfbewohner mit Loren oder Booten in die Zellen.","Bibliothekare per Lesepult so lange neu würfeln, bis das gewünschte Buch dabei ist.","Ein Zombie-Dorfbewohner heilen senkt die Preise deutlich."],
@@ -347,5 +500,6 @@ function regen(b){b.blocks=b.make(b.n);b.H=Math.max(...b.blocks.map(v=>v[1]))+1;
   b.nBlocks=b.blocks.filter(v=>counts(v[3])).length;}
 BUILDS.forEach(b=>{b.n=b.scale?b.scale.def:undefined;regen(b)});
 function effRate(b){const r=b.rate;if(!r||!r.perPlant)return r;
-  const n=Math.round(b.blocks.filter(v=>v[3]===r.plant).length/r.div),h=Math.round(n*r.perPlant);
+  const hit=k=>r.plant.endsWith("*")?k.startsWith(r.plant.slice(0,-1)):k===r.plant;
+  const n=Math.round(b.blocks.filter(v=>hit(v[3])).length/r.div),h=Math.round(n*r.perPlant);
   return {...r,h,basis:r.basis.replace("{n}",n).replace("{h}",h)}}
