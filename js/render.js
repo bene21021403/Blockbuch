@@ -21,6 +21,10 @@ function geom(s){
     case "bamboo":g=new THREE.BoxGeometry(.2,1,.2);break;
     case "fence":g=new THREE.BoxGeometry(.25,1,.25);break;
     case "egg":g=new THREE.BoxGeometry(.45,.5,.45);g.translate(0,-.25,0);break;
+    case "cart":g=new THREE.BoxGeometry(.9,.62,.9);g.translate(0,-.19,0);break;
+    case "flow":g=new THREE.BoxGeometry(1,.75,1);g.translate(0,-.125,0);break;
+    case "button":g=new THREE.BoxGeometry(.38,.14,.26);g.translate(0,-.43,0);break;
+    case "sheep":g=new THREE.BoxGeometry(.8,.95,.95);g.translate(0,-.025,0);break;
     case "sign":g=new THREE.BoxGeometry(.9,.5,.08);g.translate(0,.1,.46);break;
     default:g=new THREE.BoxGeometry(1,1,1);
   }
