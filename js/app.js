@@ -1,3 +1,17 @@
+// ---------- State ----------
+const CATS=["Alle",...new Set(BUILDS.map(b=>b.cat))];
+let cat="Alle", query="";
+const counts=k=>!T[k].mob&&!T[k].grow&&!T[k].part&&!T[k].ground;
+const mk=k=>T[k].as||k; // Materialliste: obere Stufe zählt als Stufe usw.
+function regen(b){b.blocks=b.make(b.n);b.H=Math.max(...b.blocks.map(v=>v[1]))+1;
+  b.size=[0,1,2].map(i=>Math.max(...b.blocks.map(v=>v[i]))+1);
+  b.nBlocks=b.blocks.filter(v=>counts(v[3])).length;}
+BUILDS.forEach(b=>{b.n=b.scale?b.scale.def:undefined;regen(b)});
+function effRate(b){const r=b.rate;if(!r||!r.perPlant)return r;
+  const hit=k=>r.plant.endsWith("*")?k.startsWith(r.plant.slice(0,-1)):k===r.plant;
+  const n=Math.round(b.blocks.filter(v=>hit(v[3])).length/r.div),h=Math.round(n*r.perPlant);
+  return {...r,h,basis:r.basis.replace("{n}",n).replace("{h}",h)}}
+
 // ---------- Thumbnails ----------
 let glOK=true;
 function makeThumbs(){
@@ -14,7 +28,7 @@ function makeThumbs(){
 // ---------- Liste ----------
 const $=id=>document.getElementById(id);
 function renderChips(){$("chips").innerHTML="";CATS.forEach(c=>{const bt=document.createElement("button");bt.className="chip";bt.textContent=c;bt.setAttribute("aria-pressed",c===cat);bt.onclick=()=>{cat=c;renderChips();renderGrid()};$("chips").appendChild(bt)})}
-const NEW=["huehnchengrill","silberfisch","wolle-16","dorfkarotten","mobturm","wolle-reihe","wolle-mini","karotten","mobfarm","bambus","kaktus","goldfarm","handelshalle","burg","windmuehle","leuchtfeuer","netherportal"];
+const NEW=["herrenhaus","stadthaus","leuchtturm","bruecke","gewaechshaus","landhaus","burg","windmuehle","wachturm","starterhaus","netherportal","lager","leuchtfeuer","eisenfarm","mobturm","mobfarm","kuerbis","zuckerrohr","bambus","kaktus","karotten","huehnchengrill","silberfisch","wolle-16","dorfkarotten","wolle-reihe","wolle-mini","goldfarm","handelshalle","huehner","bruchstein"];
 const DIFF={Leicht:0,Mittel:1,Schwer:2};
 let sortBy="neu";
 const rateVal=r=>!r||r.unknown||r.manual?-1:r.max!=null?r.max:Array.isArray(r.h)?r.h[1]:r.h;
@@ -84,12 +98,12 @@ function pick(e){
   if(marker)scene.remove(marker);
   marker=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.06,1.06,1.06)),new THREE.LineBasicMaterial({color:0xffd23f,depthTest:false}));
   marker.renderOrder=9;marker.position.set(bl[0]-(cur.size[0]/2-.5),bl[1]+.5,bl[2]-(cur.size[2]/2-.5));scene.add(marker);
-  const total=cur.blocks.filter(b=>b[3]===key).length;
-  const what=d.mob?"Mob":d.grow?"entsteht von selbst":d.part?"Teil eines Blocks":"Baublock";
+  const total=cur.blocks.filter(b=>mk(b[3])===mk(key)).length;
+  const what=d.mob?"Mob":d.grow?"entsteht von selbst":d.ground?"Kulisse, nicht im Material":d.part?"Teil eines Blocks":"Baublock";
   $("pickimg").src=swatch(key);$("pickname").textContent=d.n;
   $("pickinfo").textContent=`${what} · Schicht ${bl[1]+1}`+(counts(key)?` · ${total}× im Build`:"");
   $("pick").hidden=false;
-  document.querySelectorAll("#mats li").forEach(li=>li.classList.toggle("picked",li.dataset.k===key));
+  document.querySelectorAll("#mats li").forEach(li=>li.classList.toggle("picked",li.dataset.k===mk(key)));
 }
 function zoom(f){if(!cur)return;const R=frame(cur);dist=Math.min(R*2.5,Math.max(3,dist*f))}
 function resize(){if(!renderer)return;const r=$("viewer").getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}
@@ -103,7 +117,7 @@ function redraw(){
 }
 function renderMats(){
   const all={},here={};
-  cur.blocks.forEach(b=>{const k=b[3];all[k]=(all[k]||0)+1;if(b[1]===layer-1)here[k]=(here[k]||0)+1});
+  cur.blocks.forEach(b=>{if(!counts(b[3])&&!T[b[3]].mob&&!T[b[3]].grow)return;const k=mk(b[3]);all[k]=(all[k]||0)+1;if(b[1]===layer-1)here[k]=(here[k]||0)+1});
   const keys=Object.keys(all).filter(counts).sort((a,b)=>all[b]-all[a]);
   $("mats").innerHTML=keys.map(k=>`<li data-k="${k}" class="${here[k]?"here":""}"><img class="sw" alt="" src="${swatch(k)}"><span>${T[k].n}</span><span class="lay">${here[k]?"+"+here[k]+" hier":""}</span><span class="n">${all[k]}</span></li>`).join("");
   const total=keys.reduce((s,k)=>s+all[k],0);
