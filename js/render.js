@@ -40,6 +40,12 @@ function geom(s){
     case "stair":g=boxesGeo([[1,.5,1,0,-.25,0],[1,.5,.5,0,.25,-.25]]);break;
     case "door":g=new THREE.BoxGeometry(1,1,.19);g.translate(0,0,.405);break;
     case "pane":g=new THREE.BoxGeometry(1,1,.125);break;
+    case "halftop":g=new THREE.BoxGeometry(1,.5,1);g.translate(0,.25,0);break;
+    case "post":g=new THREE.BoxGeometry(.5,1,.5);break;
+    case "chain":g=new THREE.BoxGeometry(.12,1,.12);break;
+    case "carpet":g=new THREE.BoxGeometry(1,.0625,1);g.translate(0,-.47,0);break;
+    case "pot":g=new THREE.BoxGeometry(.38,.38,.38);g.translate(0,-.31,0);break;
+    case "hlantern":g=boxesGeo([[.38,.5,.38,0,-.06,0],[.06,.31,.06,0,.345,0]]);break;
     default:g=new THREE.BoxGeometry(1,1,1);
   }
   return geo[s]=g;
