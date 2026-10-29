@@ -5,6 +5,17 @@ function crossGeo(){const g=new THREE.BufferGeometry(),s=.42;
   const U=[0,0,1,0,1,1,0,1, 0,0,1,0,1,1,0,1];
   g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(U,2));
   g.setIndex([0,1,2,0,2,3,4,5,6,4,6,7]);g.computeVertexNormals();return g}
+// Mehrere Quader zu einer Form mit 6 Materialgruppen; UVs nach Position, damit Pixel nicht gestreckt werden
+function boxesGeo(list){const P=[],N=[],U=[],G=[[],[],[],[],[],[]];let vo=0;
+  list.forEach(([w,h,d,x,y,z])=>{const b=new THREE.BoxGeometry(w,h,d);b.translate(x,y,z);
+    const pa=b.attributes.position.array,na=b.attributes.normal.array;
+    for(let i=0;i<pa.length;i+=3){const px=pa[i],py=pa[i+1],pz=pa[i+2],nx=na[i],ny=na[i+1];P.push(px,py,pz);N.push(na[i],ny,na[i+2]);
+      if(Math.abs(nx)>.5)U.push(nx>0?.5-pz:pz+.5,py+.5);else if(Math.abs(ny)>.5)U.push(px+.5,.5-pz);else U.push(na[i+2]>0?px+.5:.5-px,py+.5);}
+    b.groups.forEach(gr=>{for(let i=gr.start;i<gr.start+gr.count;i++)G[gr.materialIndex].push(b.index.array[i]+vo)});
+    vo+=pa.length/3;});
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(P,3));
+  g.setAttribute("normal",new THREE.Float32BufferAttribute(N,3));g.setAttribute("uv",new THREE.Float32BufferAttribute(U,2));
+  const I=[];G.forEach((arr,m)=>{g.addGroup(I.length,arr.length,m);I.push(...arr)});g.setIndex(I);return g}
 function geom(s){
   if(geo[s])return geo[s];let g;
   switch(s){
@@ -26,6 +37,9 @@ function geom(s){
     case "button":g=new THREE.BoxGeometry(.38,.14,.26);g.translate(0,-.43,0);break;
     case "sheep":g=new THREE.BoxGeometry(.8,.95,.95);g.translate(0,-.025,0);break;
     case "sign":g=new THREE.BoxGeometry(.9,.5,.08);g.translate(0,.1,.46);break;
+    case "stair":g=boxesGeo([[1,.5,1,0,-.25,0],[1,.5,.5,0,.25,-.25]]);break;
+    case "door":g=new THREE.BoxGeometry(1,1,.19);g.translate(0,0,.405);break;
+    case "pane":g=new THREE.BoxGeometry(1,1,.125);break;
     default:g=new THREE.BoxGeometry(1,1,1);
   }
   return geo[s]=g;
@@ -47,6 +61,8 @@ function mat(key,dim){
 }
 const ROT=[0,1,2,3].map(i=>new THREE.Matrix4().makeRotationY(i*Math.PI/2));
 ROT[4]=new THREE.Matrix4().makeRotationX(-Math.PI/2);ROT[5]=new THREE.Matrix4().makeRotationX(Math.PI/2);
+// 6–9: wie 0–3, aber kopfüber (umgedrehte Treppen)
+for(let i=0;i<4;i++)ROT[6+i]=new THREE.Matrix4().makeRotationY(i*Math.PI/2).multiply(new THREE.Matrix4().makeRotationZ(Math.PI));
 function buildGroup(build,maxY,only){
   const grp=new THREE.Group(),by={};
   build.blocks.forEach(b=>{if(b[1]>maxY)return;const dim=only&&b[1]!==maxY;const k=b[3]+(dim?"|d":"");(by[k]=by[k]||[]).push(b)});
