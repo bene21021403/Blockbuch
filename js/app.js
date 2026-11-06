@@ -129,7 +129,7 @@ function renderMats(){
 function openBuild(b){
   if(b.scale&&b.n!==b.scale.def){b.n=b.scale.def;regen(b)}
   renderScale(b);
-  cur=b;$("list").hidden=true;$("detail").hidden=false;$("barList").hidden=true;$("barDetail").hidden=false;selectTab("p-build");
+  cur=b;$("list").hidden=true;$("detail").hidden=false;$("page").hidden=true;$("barList").hidden=true;$("barDetail").hidden=false;selectTab("p-build");
   $("dname").textContent=b.name;
   $("dmeta").innerHTML=`<span class="d-${b.diff}">${b.diff}</span><span>${b.cat}</span><span>${b.size.join("×")}</span>`;
   $("ddesc").textContent=b.desc;$("tips").innerHTML=b.tips.map(t=>`<li>${t}</li>`).join("");
@@ -149,7 +149,12 @@ function setScale(d){const b=cur;if(!b||!b.scale)return;const n=Math.min(b.scale
   $("layer").max=b.H;layer=b.H;
   if(renderer){dist=Math.max(dist,frame(b)*.9);target.set(0,b.size[1]/2,0);redraw()}else renderMats();}
 $("sminus").onclick=()=>setScale(-1);$("splus").onclick=()=>setScale(1);
-function showList(){if(cur&&cur.scale&&cur.n!==cur.scale.def){cur.n=cur.scale.def;regen(cur)}cur=null;$("detail").hidden=true;$("list").hidden=false;$("barList").hidden=false;$("barDetail").hidden=true}
+function showList(){if(cur&&cur.scale&&cur.n!==cur.scale.def){cur.n=cur.scale.def;regen(cur)}cur=null;$("detail").hidden=true;$("page").hidden=true;$("list").hidden=false;$("barList").hidden=false;$("barDetail").hidden=true}
+const PAGES={lizenzen:"Lizenzen"};
+function showPage(id){if(cur&&cur.scale&&cur.n!==cur.scale.def){cur.n=cur.scale.def;regen(cur)}cur=null;
+  $("list").hidden=true;$("detail").hidden=true;$("page").hidden=false;
+  document.querySelectorAll("#page>article").forEach(a=>a.hidden=a.id!==id);
+  $("barList").hidden=true;$("barDetail").hidden=false;$("dname").textContent=PAGES[id];window.scrollTo(0,0)}
 function selectTab(id){document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.p===id;t.setAttribute("aria-selected",on);$(t.dataset.p).hidden=!on})}
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>selectTab(t.dataset.p));
 (function(){const c=$("mark").getContext("2d");for(let y=0;y<8;y++)for(let x=0;x<8;x++){const top=y<2||(y===2&&(x*5)%3===0);c.fillStyle=top?(x%3?"#64a23a":"#4f8a2a"):((x+y*3)%4?"#866043":"#5b3d27");c.fillRect(x,y,1,1)}})();
@@ -161,7 +166,7 @@ $("all").onclick=()=>{layer=cur.H;only=false;$("only").setAttribute("aria-presse
 $("only").onclick=()=>{only=!only;$("only").setAttribute("aria-pressed",only);redraw()};
 $("spin").onclick=()=>setSpin(!spin);
 $("pickclose").onclick=()=>{clearPick();document.querySelectorAll("#mats li.picked").forEach(li=>li.classList.remove("picked"))};
-function route(){const h=location.hash.replace("#b-","");const b=BUILDS.find(x=>x.id===h);b?openBuild(b):showList()}
+function route(){const p=location.hash.slice(1);if(PAGES[p])return showPage(p);const h=location.hash.replace("#b-","");const b=BUILDS.find(x=>x.id===h);b?openBuild(b):showList()}
 window.addEventListener("hashchange",route);
 
 if(typeof THREE==="undefined"){glOK=false}else makeThumbs();

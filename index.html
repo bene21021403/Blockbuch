@@ -8,8 +8,7 @@
 <meta name="application-name" content="Blockbuch">
 <meta name="description" content="Minecraft-Bedrock-Builds und Farmen als 3D-Modell mit Schichtansicht, Materialliste und Ertragsraten.">
 <title>Blockbuch Bedrock</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -121,10 +120,34 @@
         </div>
       </div>
     </section>
+    <section id="page" hidden>
+      <article class="legal" id="lizenzen">
+        <h1>Lizenzen</h1>
+        <p>Blockbuch lädt keine Dateien von fremden Servern. Schriften und Bibliotheken liegen direkt bei der App.</p>
+        <div class="sec">
+          <h3>Three.js r128</h3>
+          <p>3D-Darstellung. Copyright 2010–2021 Three.js Authors. Lizenz: MIT.</p>
+          <a class="tlink bevel" href="vendor/three/LICENSE.txt" target="_blank" rel="noopener">Lizenztext ansehen</a>
+        </div>
+        <div class="sec">
+          <h3>Pixelify Sans</h3>
+          <p>Überschriften. Copyright 2021 The Pixelify Sans Project Authors. Lizenz: SIL Open Font License 1.1. Eingebunden über Fontsource 5.3.0.</p>
+          <a class="tlink bevel" href="assets/fonts/LICENSE-pixelify-sans.txt" target="_blank" rel="noopener">Lizenztext ansehen</a>
+        </div>
+        <div class="sec">
+          <h3>Atkinson Hyperlegible</h3>
+          <p>Fließtext. Copyright 2020 Braille Institute of America, Inc. Lizenz: SIL Open Font License 1.1. Eingebunden über Fontsource 5.3.0.</p>
+          <a class="tlink bevel" href="assets/fonts/LICENSE-atkinson-hyperlegible.txt" target="_blank" rel="noopener">Lizenztext ansehen</a>
+        </div>
+        <p class="note">Minecraft ist eine Marke von Mojang Studios. Blockbuch ist ein inoffizielles Fanprojekt und steht in keiner Verbindung zu Mojang oder Microsoft.</p>
+      </article>
+    </section>
+
+    <nav class="sitefoot" aria-label="Rechtliches"><a href="#lizenzen">Lizenzen</a></nav>
   </div>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="vendor/three/three.min.js"></script>
 
 <script src="js/data.js"></script>
 <script src="js/textures.js"></script>
