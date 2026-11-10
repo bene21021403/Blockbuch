@@ -1,0 +1,11 @@
+# Lokale Claude-Code-Einstellungen (können Secrets enthalten) – niemals committen
+.claude/settings.local.json
+
+# Lokale Secrets
+.env
+.env.*
+.dev.vars*
+
+# Systemdateien
+.DS_Store
+Thumbs.db
